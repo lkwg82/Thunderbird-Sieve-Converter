@@ -1,5 +1,5 @@
 # Thunderbird-Sieve-Converter
-This Python script converts Thunderbird email filter rules (from msgFilterRules.dat) to Sieve script format, which can be used with email systems supporting Sieve filtering, such as Roundcube.
+This Python script converts Thunderbird email filter rules (from `msgFilterRules.dat`) to Sieve script format, which can be used with email systems supporting Sieve filtering, such as Roundcube.
 
 # Usage
 ```
