@@ -70,30 +70,28 @@ def convert_condition(_condition: str) -> Tuple[str, List[str]]:
         header = clean_header(header)
         value = clean_header(value)
 
+        simple_headers =["from","to","cc","subject"]
         print(f"    ℹ️️ header operation value: h'{header}' o'{operation}' v'{value}'")
         if operation == 'is':
-            if 'from' == header:
-                sieve_conditions.append(f'header :is "From" "{value}"')
+            if header in simple_headers:
+                sieve_conditions.append(f'header :is "{header.capitalize()}" "{value}"')
         elif operation =='contains':
-            if 'from' == header:
-                sieve_conditions.append(f'header :contains "From" "{value}"')
-            elif 'subject' == header:
-                sieve_conditions.append(f'header :contains "Subject" "{value}"')
+            if header in simple_headers:
+                sieve_conditions.append(f'header :contains "{header.capitalize()}" "{value}"')
             else:
                 if ' or ' in header:
                     or_args = header.split(' or ')
-                    header_list = '["' + '","'.join(or_args)+'"]'
+                    capitalized = [w.capitalize() for w in or_args]
+                    header_list = '["' + '","'.join(capitalized)+'"]'
                     sieve_conditions.append(f'header :contains {header_list} "{value}"')
                 else:
                     sieve_conditions.append(f'header :contains "{header}" "{value}"')
         elif operation =='begins with':
-            if 'from' == header:
-                sieve_conditions.append(f'header :matches "From" "{value}*"')
-            elif 'subject' == header:
-                sieve_conditions.append(f'header :matches "Subject" "{value}*"')
+            if header in simple_headers:
+                sieve_conditions.append(f'header :matches "{header.capitalize()}" "{value}*"')
         elif operation =='ends with':
-            if 'from' == header:
-                sieve_conditions.append(f'header :matches "From" "*{value}"')
+            if header in simple_headers:
+                sieve_conditions.append(f'header :contains "{header.capitalize()}" "*{value}"')
         else:
             print(f"    ☢️ unhandled header/operation: h'{header}' o'{operation}'")
 
