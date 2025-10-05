@@ -80,7 +80,12 @@ def convert_condition(_condition: str) -> Tuple[str, List[str]]:
             elif 'subject' == header:
                 sieve_conditions.append(f'header :contains "Subject" "{value}"')
             else:
-                sieve_conditions.append(f'header :contains "{header}" "{value}"')
+                if ' or ' in header:
+                    or_args = header.split(' or ')
+                    header_list = '["' + '","'.join(or_args)+'"]'
+                    sieve_conditions.append(f'header :contains {header_list} "{value}"')
+                else:
+                    sieve_conditions.append(f'header :contains "{header}" "{value}"')
         elif operation =='begins with':
             if 'from' == header:
                 sieve_conditions.append(f'header :matches "From" "{value}*"')
