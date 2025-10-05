@@ -48,10 +48,10 @@ def clean_header(header: str) -> str:
     # Only unescape inner quotes if they are double-escaped
     return header.replace('\\"', '"').strip('"')
 
-def convert_condition(condition: str) -> Tuple[str, List[str]]:
+def convert_condition(_condition: str) -> Tuple[str, List[str]]:
     """Convert a Thunderbird condition to Sieve format."""
-    
-    condition = condition.strip()
+
+    condition = _condition.strip()
     if condition.startswith('OR '):
         operator = 'anyof'
         condition = condition[3:]
@@ -69,14 +69,31 @@ def convert_condition(condition: str) -> Tuple[str, List[str]]:
         # Clean header and value
         header = clean_header(header)
         value = clean_header(value)
-        
-        if header == "to or cc":
-            sieve_conditions.append(f'header :contains "to" "{value}"')
-            sieve_conditions.append(f'header :contains "cc" "{value}"')
-        elif operation == 'contains':
-            sieve_conditions.append(f'header :contains "{header}" "{value}"')
-        elif operation == "doesn't contain":
-            sieve_conditions.append(f'not header :contains "{header}" "{value}"')
+
+        print(f"    ℹ️️ header operation value: h'{header}' o'{operation}' v'{value}'")
+        if operation == 'is':
+            if 'from' == header:
+                sieve_conditions.append(f'header :is "From" "{value}"')
+        elif operation =='contains':
+            if 'from' == header:
+                sieve_conditions.append(f'header :contains "From" "{value}"')
+            elif 'subject' == header:
+                sieve_conditions.append(f'header :contains "Subject" "{value}"')
+            else:
+                sieve_conditions.append(f'header :contains "{header}" "{value}"')
+        elif operation =='begins with':
+            if 'from' == header:
+                sieve_conditions.append(f'header :matches "From" "{value}*"')
+            elif 'subject' == header:
+                sieve_conditions.append(f'header :matches "Subject" "{value}*"')
+        elif operation =='ends with':
+            if 'from' == header:
+                sieve_conditions.append(f'header :matches "From" "*{value}"')
+        else:
+            print(f"    ☢️ unhandled header/operation: h'{header}' o'{operation}'")
+
+    if len(sieve_conditions) == 0:
+        print(f"☢️ unhandled condition: {_condition}")
 
     return operator, sieve_conditions
 
