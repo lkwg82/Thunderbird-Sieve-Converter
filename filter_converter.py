@@ -106,10 +106,10 @@ def convert_to_sieve(thunderbird_filter: Dict[str, str]) -> str:
 
     if 'actionValue' in thunderbird_filter:
         full_path = thunderbird_filter['actionValue']
-        folder_match = re.search(r'INBOX/(.+)$', full_path)
+        folder_match = re.search(r'inbox/(.+)$', full_path.lower())
         if folder_match:
             folder = folder_match.group(1)
-            actions.append(f'\tfileinto "INBOX/{folder}";')
+            actions.append(f'\tfileinto "INBOX.{folder.replace('.','-').replace('/','.')}";')
 
     if 'actions' in thunderbird_filter:
         if "Mark read" in thunderbird_filter['actions']:
