@@ -103,23 +103,32 @@ def convert_to_sieve(thunderbird_filter: Dict[str, str]) -> str:
     name = thunderbird_filter.get('name', 'Unnamed Filter')
     condition = thunderbird_filter.get('condition', '')
     actions = []
+    hint=''
 
-    if 'actionValue' in thunderbird_filter:
-        full_path = thunderbird_filter['actionValue']
-        folder_match = re.search(r'inbox/(.+)$', full_path.lower())
-        if folder_match:
-            folder = folder_match.group(1)
-            actions.append(f'\tfileinto "INBOX.{folder.replace('.','-').replace('/','.')}";')
+    thunder_actions = thunderbird_filter['actions'] if 'actions' in thunderbird_filter else []
+    thunder_value = thunderbird_filter['actionValue'] if 'actionValue' in thunderbird_filter else None
 
     if 'actions' in thunderbird_filter:
-        if "Mark read" in thunderbird_filter['actions']:
+        if "Mark read" in thunder_actions:
             actions.append('\tsetflag "\\\\Seen";')
-        if "Stop execution" in thunderbird_filter['actions']:
+        if "Mark flagged" in thunder_actions:
+            actions.append('\tsetflag "\\\\Flagged";')
+        if "Stop execution" in thunder_actions:
             actions.append('\tstop;')
+        if "Move to folder" in thunder_actions:
+            full_path = thunder_value
+            folder_match = re.search(r'inbox/(.+)$', full_path.lower())
+            if folder_match:
+                folder = folder_match.group(1)
+                actions.append(f'\tfileinto "INBOX.{folder.replace('.','-').replace('/','.')}";')
+            elif '/Trash/' in full_path:
+                hint = f"rule deactivated because target is Trash '{full_path}'"
+
 
     operator, sieve_conditions = convert_condition(condition)
 
-    if len(sieve_conditions) == 0:
+    if len(sieve_conditions) == 0 :
+        print(f"⚠️ see rule '{name}' (unhandled condition)")
         sieve_rule = f"# WARNING: condition not convertable\n"
         sieve_rule += f"# {condition}\n"
         sieve_rule += f"# rule:[{name}]\n"
@@ -127,6 +136,15 @@ def convert_to_sieve(thunderbird_filter: Dict[str, str]) -> str:
         sieve_rule += f"#if {operator} (\n#    "
         sieve_rule += "#,\n#    ".join(sieve_conditions)
         sieve_rule += "\n#)\n#{\n#" + "\n#".join(actions) + "\n#}"
+    elif len(actions)==0:
+        print(f"⚠️ see rule '{name}' (missing action)")
+        sieve_rule = f"# WARNING: rule has no action\n"
+        sieve_rule += f"# rule:[{name}]\n"
+        if hint:
+            sieve_rule += f"# hint {hint}\n"
+        sieve_rule += f"# conditions {condition}\n"
+        sieve_rule += f"# actions {thunder_actions}\n"
+        sieve_rule += f"# values {thunder_value}\n"
     else:
         sieve_rule = f"# rule:[{name}]\n"
         sieve_rule += f"if {operator} (\n    "
