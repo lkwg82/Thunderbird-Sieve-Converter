@@ -119,10 +119,19 @@ def convert_to_sieve(thunderbird_filter: Dict[str, str]) -> str:
 
     operator, sieve_conditions = convert_condition(condition)
 
-    sieve_rule = f"# rule:[{name}]\n"
-    sieve_rule += f"if {operator} (\n    "
-    sieve_rule += ",\n    ".join(sieve_conditions)
-    sieve_rule += "\n)\n{\n" + "\n".join(actions) + "\n}"
+    if len(sieve_conditions) == 0:
+        sieve_rule = f"# WARNING: condition not convertable\n"
+        sieve_rule += f"# {condition}\n"
+        sieve_rule += f"# rule:[{name}]\n"
+
+        sieve_rule += f"#if {operator} (\n#    "
+        sieve_rule += "#,\n#    ".join(sieve_conditions)
+        sieve_rule += "\n#)\n#{\n#" + "\n#".join(actions) + "\n#}"
+    else:
+        sieve_rule = f"# rule:[{name}]\n"
+        sieve_rule += f"if {operator} (\n    "
+        sieve_rule += ",\n    ".join(sieve_conditions)
+        sieve_rule += "\n)\n{\n" + "\n".join(actions) + "\n}"
 
     return sieve_rule
 
